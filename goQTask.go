@@ -3,6 +3,7 @@ package goQTask
 import (
 	"fmt"
 	"github.com/petar/GoLLRB/llrb"
+	"time"
 )
 
 type Task interface {
@@ -11,6 +12,8 @@ type Task interface {
 	Run() bool
 
 	ExecTime() int64
+
+	TaskName() string
 }
 
 const (
@@ -30,7 +33,7 @@ func NewQTask() *QTask {
 		waitTime: maxTime,
 	}
 }
-func (q *QTask) AddTask(ts *Task) bool {
+func (q *QTask) AddTask(ts Task) bool {
 	if ts == nil {
 		fmt.Println("task is empty,add valid")
 		return false
@@ -41,6 +44,7 @@ func (q *QTask) AddTask(ts *Task) bool {
 }
 
 func (q *QTask) Run() {
+	timer := time.NewTimer(time.Duration(q.waitTime))
 	for {
 
 		select {
@@ -49,7 +53,22 @@ func (q *QTask) Run() {
 				fmt.Println("recived a empty task")
 				return
 			}
-			fmt.Println("task exec time=", task.ExecTime())
+
+			fmt.Printf("I received a task. Current Time %d, it ask me to run it at %d\n",
+				time.Now().Nanosecond(), task.ExecTime())
+			if int(task.ExecTime()) <= time.Now().Nanosecond() {
+				fmt.Println("run task ", task.TaskName())
+				go task.Run()
+				continue
+			}
+			q.tree.InsertNoReplace(llrb.Int(int(task.ExecTime()) - time.Now().Nanosecond()))
+			waitTime := q.tree.Min()
+			if waitTime != nil {
+				timer.Reset(time.Nanosecond * time.Duration(waitTime.(llrb.Int)))
+				fmt.Printf("wait %d\n", waitTime.(llrb.Int))
+			}
+		case <-timer.C:
+			fmt.Println("time to run task")
 		default:
 		}
 
