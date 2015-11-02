@@ -29,7 +29,7 @@ type QTask struct {
 func NewQTask() *QTask {
 	return &QTask{
 		tree:     llrb.New(),
-		qchan:    make(chan Task),
+		qchan:    make(chan Task, 30),
 		waitTime: maxTime,
 	}
 }
@@ -44,7 +44,7 @@ func (q *QTask) AddTask(ts Task) bool {
 }
 
 func (q *QTask) Run() {
-	timer := time.NewTimer(time.Duration(q.waitTime))
+	timer := time.NewTimer(time.Duration(1))
 	for {
 
 		select {
@@ -64,12 +64,12 @@ func (q *QTask) Run() {
 			q.tree.InsertNoReplace(llrb.Int(int(task.ExecTime()) - time.Now().Nanosecond()))
 			waitTime := q.tree.Min()
 			if waitTime != nil {
-				timer.Reset(time.Nanosecond * time.Duration(waitTime.(llrb.Int)))
+				timer.Reset(time.Duration(waitTime.(llrb.Int)))
 				fmt.Printf("wait %d\n", waitTime.(llrb.Int))
 			}
 		case <-timer.C:
-			fmt.Println("time to run task")
-		default:
+			fmt.Println("time to run task....")
+
 		}
 
 	}
