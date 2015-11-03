@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/ShinichR/goQTask"
+	"github.com/petar/GoLLRB/llrb"
 	"os"
 	"os/signal"
 	"runtime"
@@ -33,6 +34,10 @@ func (t *task) ExecTime() int64 {
 func (t *task) TaskName() string {
 	return t.taskname
 }
+func (t *task) Less(x llrb.Item) bool {
+	return false
+	//return x.ExecTime() < y.ExecTime()
+}
 
 func main() {
 
@@ -53,10 +58,10 @@ func main() {
 	go qtask.Run()
 
 	qtask.AddTask(&task{1000, "100"})
-	qtask.AddTask(&task{7000, "200"})
+	/*qtask.AddTask(&task{7000, "200"})
 	qtask.AddTask(&task{4000, "300"})
 	qtask.AddTask(&task{2000, "400"})
-	qtask.AddTask(&task{2500, "500"})
+	qtask.AddTask(&task{2500, "500"})*/
 
 	chSig := make(chan os.Signal)
 	signal.Notify(chSig, syscall.SIGINT, syscall.SIGTERM)

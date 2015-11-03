@@ -5,7 +5,7 @@ import (
 	"github.com/petar/GoLLRB/llrb"
 )
 
-func lessInt(a, b interface{}) bool { return a.(int) < b.(int) }
+//func lessInt(a, b interface{}) bool { return a.(int) < b.(int) }
 
 func main() {
 	tree := llrb.New()
