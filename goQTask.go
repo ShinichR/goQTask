@@ -41,7 +41,7 @@ func (q *QTask) AddTask(ts Task) bool {
 		fmt.Println("task is empty,add valid")
 		return false
 	}
-	fmt.Println("AddTask ", ts.TaskName())
+	//fmt.Println("AddTask ", ts.TaskName())
 	q.qchan <- ts
 	return true
 
@@ -58,8 +58,8 @@ func (q *QTask) Run() {
 				return
 			}
 
-			fmt.Printf("I received a task. Current Time %d, it ask me to run it at %d\n",
-				time.Now().Nanosecond(), task.ExecTime())
+			//fmt.Printf("I received a task. Current Time %d, it ask me to run it at %d\n",
+			//	time.Now().Nanosecond(), task.ExecTime())
 			if task.ExecTime() <= int64(time.Now().Nanosecond()) {
 				fmt.Println("run task ", task.TaskName())
 				go task.Run()
@@ -71,14 +71,26 @@ func (q *QTask) Run() {
 			task = x.(Task)
 			if task != nil {
 				timer.Reset(time.Duration(task.ExecTime() - int64(time.Now().Nanosecond())))
-				fmt.Printf("wait %d\n", task.ExecTime()-int64(time.Now().Nanosecond()))
+				//fmt.Printf("wait %d\n", task.ExecTime()-int64(time.Now().Nanosecond()))
 			}
+			//debug
+			/*
+				q.tree.AscendGreaterOrEqual(q.tree.Min(), func(item llrb.Item) bool {
+					task := item.(Task)
+					if task == nil {
+						return false
+					}
+					fmt.Printf("debug:----name:[%s].....time:[%d]\n", task.TaskName(), task.ExecTime())
+					return true
+				})
+			*/
+			//debug
 		case <-timer.C:
 			x := q.tree.Min()
 			task := x.(Task)
-			fmt.Printf("run task:[%s],%d,%d\n", task.TaskName(), task.ExecTime(), int64(time.Now().Nanosecond()))
+			//fmt.Printf("run task:[%s],%d,%d\n", task.TaskName(), task.ExecTime(), int64(time.Now().Nanosecond()))
 			for task.ExecTime() <= int64(time.Now().Nanosecond()) {
-				//go task.Run()
+				go task.Run()
 				q.tree.DeleteMin()
 				x = q.tree.Min()
 
@@ -88,11 +100,11 @@ func (q *QTask) Run() {
 					break
 				}
 				task = x.(Task)
-				fmt.Printf("min task:[%s]\n", task.TaskName())
+				//fmt.Printf("min task:[%s]\n", task.TaskName())
 			}
 			if task != nil {
 				timer.Reset(time.Duration(task.ExecTime() - int64(time.Now().Nanosecond())))
-				fmt.Println("next task wait:", task.ExecTime()-int64(time.Now().Nanosecond()))
+				//fmt.Println("next task wait:", task.ExecTime()-int64(time.Now().Nanosecond()))
 			}
 
 		}
